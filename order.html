@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Order fresh button mushrooms from Jaiswal Mushroom Farms, Bargaon, Bagaha, Bihar.">
+<title>Jaiswal Mushroom Farms | Order Mushrooms</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,sans-serif;margin:0;padding:18px 10px 32px;background:linear-gradient(135deg,#fff,#50c878);color:#26332a}
+h1{text-align:center;color:#006400;margin:8px 0 20px}.container{max-width:620px;margin:auto;padding:22px;background:#fffffff2;border-radius:14px;box-shadow:0 4px 20px #0002}
+.intro,.disclaimer,.note{text-align:center;color:#526257;line-height:1.5}.intro{margin-top:-8px}label{display:block;margin-top:13px;font-weight:650}
+select,input{display:block;width:100%;min-width:0;padding:12px;margin-top:5px;border:1px solid #b9c7bd;border-radius:7px;background:white;font:inherit}
+select:focus,input:focus{outline:2px solid #50c878}.price{margin-top:14px;padding:14px;border-radius:9px;background:#eef9f0;border:1px solid #c5e7cd}.line{display:flex;justify-content:space-between;gap:12px;margin:5px 0}.total{font-size:1.2rem;color:#006400;font-weight:800}
+button{margin-top:18px;padding:13px 18px;border:0;border-radius:7px;background:#006400;color:white;font-weight:750;font-size:1rem;cursor:pointer;width:100%}button:hover{background:#008000}button:disabled{opacity:.65;cursor:wait}
+.status{display:none;padding:12px;border-radius:8px;margin-top:14px;line-height:1.5}.status.success{display:block;background:#e9f8ed;border:1px solid #a7d9b3;color:#14532d}.status.error{display:block;background:#fff1f0;border:1px solid #f0b4af;color:#8a1c13}
+.note{font-size:12px;margin-top:9px}.disclaimer{font-size:13px;margin-top:18px}[hidden]{display:none!important}@media(max-width:480px){body{padding:12px 8px 24px}h1{font-size:24px}.container{padding:16px}}
+</style></head>
+<body>
+<h1>Jaiswal Mushroom Farms</h1>
+<main class="container">
+<p class="intro">Fresh white button mushrooms · Bargaon, Bagaha, Bihar</p>
+<form id="orderForm">
+<label for="product">Product</label><select id="product" required><option value="">-- Select product --</option><option value="Button Mushroom">Button Mushroom</option></select>
+<label for="weight">Pack size</label><select id="weight" required><option value="">-- Select pack size --</option><option value="200g" data-price="50">200 g — ₹50</option><option value="500g" data-price="120">500 g — ₹120</option><option value="1kg" data-price="240">1 kg — ₹240</option></select>
+<label for="quantity">Number of packs</label><input type="number" id="quantity" min="1" max="100" step="1" value="1" required>
+<div class="price" aria-live="polite"><div class="line"><span>Price per pack</span><strong id="unitPrice">₹—</strong></div><div class="line"><span>Quantity</span><strong id="quantitySummary">1</strong></div><div class="line"><span>Total product price</span><strong class="total" id="totalPrice">₹—</strong></div><div class="note">Delivery charges, if any, will be confirmed before order acceptance.</div></div>
+<h3>Customer details</h3>
+<label for="name">Full name</label><input id="name" autocomplete="name" maxlength="100" required>
+<label for="phone">Phone / WhatsApp number</label><input type="tel" id="phone" autocomplete="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10-digit mobile number" required>
+<label for="pincode">Pincode</label><input type="text" id="pincode" autocomplete="postal-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" value="845101" placeholder="6-digit pincode" required>
+<div id="deliveryStatus" class="note" role="status" aria-live="polite">Home delivery requests are accepted within PIN code 845101.</div>
+<div id="homeDeliveryFields"><label for="deliveryDate">Preferred delivery date</label><input type="date" id="deliveryDate" required></div>
+<div id="appointmentFields" hidden>
+<h3>Appointment details</h3><p class="note" style="text-align:left">Home delivery is not available for this PIN code. You can request an order appointment instead; we will contact you to confirm.</p>
+<label for="appointmentDate">Preferred appointment date</label><input type="date" id="appointmentDate">
+<label for="appointmentTime">Preferred time</label><select id="appointmentTime"><option value="">-- Choose a preferred time --</option><option>9 AM – 12 PM</option><option>12 PM – 3 PM</option><option>3 PM – 6 PM</option></select>
+</div>
+<div id="addressFields">
+<label for="state">State</label><input id="state" autocomplete="address-level1" value="Bihar" maxlength="60" readonly required>
+<label for="city">City / Town / Village</label><input id="city" autocomplete="address-level2" maxlength="100" required>
+<label for="house">House number / Building name</label><input id="house" autocomplete="address-line1" maxlength="150" required>
+<label for="road">Road / Area / Locality</label><input id="road" autocomplete="address-line2" maxlength="180" required>
+</div>
+<button type="submit" id="submitBtn">Place Order Request</button>
+<div class="note">Your order request will be sent. We will contact you to confirm it.</div>
+<div id="status" class="status" role="status" aria-live="polite"></div>
+</form>
+<div class="disclaimer">Home delivery is available only within PIN code 845101. For other PIN codes, you can request an appointment; we will contact you to confirm.</div>
+</main>
+<script>
+(() => {
+// HTML-only Telegram setup. The bot token is visible to anyone inspecting this file.
+const BOT_TOKEN = "8686090810:AAFunNIccxGhoD8dEalzn-nJTvjrZWTlSGM";
+const BOT_USERNAME = "jaiswalfarmsBot";
+const API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+const form=document.getElementById("orderForm"), product=document.getElementById("product"), weight=document.getElementById("weight"), quantity=document.getElementById("quantity"), btn=document.getElementById("submitBtn"), status=document.getElementById("status"), pincode=document.getElementById("pincode"), deliveryStatus=document.getElementById("deliveryStatus"), appointmentFields=document.getElementById("appointmentFields"), appointmentDate=document.getElementById("appointmentDate"), appointmentTime=document.getElementById("appointmentTime"), homeDeliveryFields=document.getElementById("homeDeliveryFields"), deliveryDate=document.getElementById("deliveryDate"), addressFields=document.getElementById("addressFields");
+function unitPrice(){const o=weight.options[weight.selectedIndex];return o&&o.dataset.price?Number(o.dataset.price):0}
+function updatePrice(){const p=unitPrice(),q=Number(quantity.value);document.getElementById("unitPrice").textContent=p?"₹"+p:"₹—";document.getElementById("quantitySummary").textContent=Number.isInteger(q)&&q>0?q:"—";document.getElementById("totalPrice").textContent=p&&Number.isInteger(q)&&q>0?"₹"+p*q:"₹—"}
+function show(message,type){status.textContent=message;status.className="status "+type}
+function dateString(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function setDateMinimum(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+1);const minDate=dateString(d);deliveryDate.min=minDate;appointmentDate.min=minDate;if(deliveryDate.value&&deliveryDate.value<minDate)deliveryDate.value="";if(appointmentDate.value&&appointmentDate.value<minDate)appointmentDate.value=""}
+function updateDeliveryMode(){const home=pincode.value.trim()==="845101";appointmentFields.hidden=home;homeDeliveryFields.hidden=!home;addressFields.hidden=!home;deliveryStatus.textContent=home?"Home delivery requests are accepted within PIN code 845101.":"Home delivery is not available for this PIN code. You can request an appointment instead; address details are not needed.";deliveryDate.required=home;appointmentDate.required=!home;appointmentTime.required=!home;for(const id of ["state","city","house","road"])document.getElementById(id).required=home;btn.textContent=home?"Place Home Delivery Request":"Request Order Appointment";setDateMinimum()}
+pincode.addEventListener("input",updateDeliveryMode);weight.addEventListener("change",updatePrice);quantity.addEventListener("input",updatePrice);
+async function getChatId(){
+  let updatesResponse=await fetch(`${API}/getUpdates?limit=100`);let updates=await updatesResponse.json();
+  if(!updates.ok)throw new Error("Bot API unavailable");
+  const candidates=[];
+  for(const u of updates.result||[]){const m=u.message||u.channel_post||u.my_chat_member?.chat_member?.user;const chat=(u.message&&u.message.chat)||(u.channel_post&&u.channel_post.chat);if(chat&&chat.id)candidates.push({id:chat.id,username:chat.username||""});}
+  const personal=candidates.filter(x=>!x.username||x.username.toLowerCase()!==BOT_USERNAME.toLowerCase());
+  if(personal.length)return String(personal[personal.length-1].id);
+  throw new Error("Open the bot and press Start first");
+}
+function esc(v){return String(v??"—").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+form.addEventListener("submit",async e=>{
+e.preventDefault();if(!form.reportValidity())return;
+const p=unitPrice(),q=Number(quantity.value);if(!product.value||!p||!Number.isInteger(q)||q<1||q>100){show("Please select a product and pack size, and enter a valid quantity.","error");return}
+const home=pincode.value.trim()==="845101";
+if(home&&(!deliveryDate.value||deliveryDate.value<deliveryDate.min)){show("Please select a delivery date from tomorrow onward.","error");return}
+if(!home&&(!appointmentDate.value||!appointmentTime.value)){show("Please choose a future appointment date and preferred time.","error");return}
+if(!home&&appointmentDate.value<appointmentDate.min){show("Please select a date from tomorrow onward.","error");return}
+const o={order_type:home?"Home delivery request":"Appointment request (no home delivery)",delivery_date:home?deliveryDate.value:"Not applicable",appointment_date:home?"Not applicable":appointmentDate.value,appointment_time:home?"Not applicable":appointmentTime.value,product:product.value,weight:weight.value,quantity:q,unit_price:p,total_price:p*q,name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim(),pincode:pincode.value.trim(),state:home?document.getElementById("state").value.trim():"Not required",city:home?document.getElementById("city").value.trim():"Not required",house:home?document.getElementById("house").value.trim():"Not required",road:home?document.getElementById("road").value.trim():"Not required"};
+btn.disabled=true;btn.textContent="Sending request…";show("Sending your order request…","success");
+try{
+ const chatId=await getChatId();
+ const msg=["🍄 <b>NEW ORDER REQUEST — JAISWAL MUSHROOM FARMS</b>","━━━━━━━━━━━━━━━━━━━━","<b>Type:</b> "+esc(o.order_type),"<b>Product:</b> "+esc(o.product),"<b>Pack size:</b> "+esc(o.weight),"<b>Quantity:</b> "+esc(o.quantity),"<b>Price per pack:</b> ₹"+esc(o.unit_price),"<b>Total:</b> ₹"+esc(o.total_price),"<b>Delivery date:</b> "+esc(o.delivery_date),"<b>Appointment date:</b> "+esc(o.appointment_date),"<b>Preferred time:</b> "+esc(o.appointment_time),"━━━━━━━━━━━━━━━━━━━━","<b>Customer:</b> "+esc(o.name),"<b>Phone:</b> "+esc(o.phone),"<b>PIN:</b> "+esc(o.pincode),"<b>Address:</b> "+[o.house,o.road,o.city,o.state].map(esc).join(", "),"<b>Received:</b> "+new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"})+" IST"].join("\n");
+ const res=await fetch(`${API}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:chatId,text:msg,parse_mode:"HTML",disable_web_page_preview:true})});const data=await res.json();if(!res.ok||!data.ok)throw new Error("Message could not be sent");
+ show("Order request sent successfully. We will contact you to confirm.","success");form.reset();document.getElementById("state").value="Bihar";pincode.value="845101";updateDeliveryMode();updatePrice();
+}catch(err){console.error(err);show("Could not send your order request. Please open @"+BOT_USERNAME+" in Telegram, press Start, send it a message, then try again.","error")}
+finally{btn.disabled=false;updateDeliveryMode()}
+});
+updatePrice();updateDeliveryMode();
+})();
+</script></body></html>
